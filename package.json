@@ -1,5 +1,5 @@
 {
-  "name": "react-native-ble-manager",
+  "name": "react-native-ble-connect",
   "version": "1.0.0",
   "description": "A Bluetooth Low Energy module for react native.",
   "main": "BleManager",

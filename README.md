@@ -1,9 +1,9 @@
-# react-native-ble-manager
+# react-native-ble-connect
 [![npm version](https://img.shields.io/npm/v/react-native-ble-connect.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-connect)
 [![npm downloads](https://img.shields.io/npm/dm/react-native-ble-connect.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-connect)
-[![GitHub issues](https://img.shields.io/github/issues/innoveit/react-native-ble-connect.svg?style=flat)](https://github.com/innoveit/react-native-ble-connect/issues)
+[![GitHub issues](https://img.shields.io/github/issues/petrykowskiM/react-native-ble-connect.svg?style=flat)](https://github.com/petrykowskim/react-native-ble-connect/issues)
 
-This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
+This repsitory builds up on a fork of [react-native-ble-manager](https://github.com/innoveit/react-native-ble-manager) by innoveit.
 
 ##Requirements
 RN 0.30+
@@ -14,10 +14,10 @@ RN 0.30+
 
 ##Install
 ```shell
-npm i --save react-native-ble-manager
+npm i --save react-native-ble-connect
 ```
 ####iOS
-- Open the node_modules/react-native-ble-manager/ios folder and drag BleManager.xcodeproj into your Libraries group.
+- Open the node_modules/react-native-ble-connect/ios folder and drag BleManager.xcodeproj into your Libraries group.
 - Check the "Build Phases"of your project and add "libBleManager.a" in the "Link Binary With Libraries" section.
 
 ####Android
@@ -27,8 +27,8 @@ npm i --save react-native-ble-manager
 // file: android/settings.gradle
 ...
 
-include ':react-native-ble-manager'
-project(':react-native-ble-manager').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-ble-manager/android')
+include ':react-native-ble-connect'
+project(':react-native-ble-connect').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-ble-connect/android')
 ```
 #####Update Gradle Build
 
@@ -38,7 +38,7 @@ project(':react-native-ble-manager').projectDir = new File(rootProject.projectDi
 
 dependencies {
     ...
-    compile project(':react-native-ble-manager')
+    compile project(':react-native-ble-connect')
 }
 ```
 #####Register React Package
@@ -77,7 +77,7 @@ import {
   Platform,
   PermissionsAndroid
 } from 'react-native';
-import BleManager from 'react-native-ble-manager';
+import BleManager from 'react-native-ble-connect';
 
 class BleExample extends Component {
 
@@ -190,7 +190,7 @@ Returns a `Promise` object.
 
 __Arguments__
 - `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for. On Android the filter works only for 5.0 or newer.
-- `seconds` - `Integer` - the amount of seconds to scan.
+- `seconds` - `Integer` - the amount of seconds to scan. If 0 scan will last until stopped.
 - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
 
 __Examples__
