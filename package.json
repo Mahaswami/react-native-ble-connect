@@ -1,17 +1,18 @@
 {
   "name": "react-native-ble-manager",
-  "version": "2.4.3",
-  "description": "A BLE module for react native.",
+  "version": "1.0.0",
+  "description": "A Bluetooth Low Energy module for react native.",
   "main": "BleManager",
   "repository": {
     "type": "git",
-    "url": "https://github.com/innoveit/react-native-ble-manager.git"
+    "url": "https://github.com/petrykowskim/react-native-ble-connect.git"
   },
   "bugs": {
-    "url": "https://github.com/innoveit/react-native-ble-manager/issues"
+    "url": "https://github.com/petrykowskim/react-native-ble-connect/issues"
   },
   "keywords": [
   	"react-native",
+  	"react native",
   	"android",
     "ios",
     "ble",
@@ -20,7 +21,7 @@
   ],
   "license": "Apache-2.0",
   "author": {
-    "name": "Innove",
-    "url": "https://github.com/innoveit"
+    "name": "PetrykowskiM",
+    "url": "https://github.com/petrykowskim"
   }
 }
