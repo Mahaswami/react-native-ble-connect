@@ -286,6 +286,7 @@ BleManager.checkState();
 ### startNotification(peripheralId, serviceUUID, characteristicUUID)
 Start the notification on the specified characteristic.
 Returns a `Promise` object.
+Getting notifications with [NotificationEvent](#blemanagerdidupdatevalueforcharacteristic)
 
 __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
@@ -335,6 +336,7 @@ BleManager.read('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX
     console.log(error);
   });
 ```
+
 
 ### write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
 Write with response to the specified characteristic.
@@ -471,7 +473,7 @@ NativeAppEventEmitter.addListener(
 ```
 
 ###  BleManagerDidUpdateState
-The BLE change state.
+Gets fired on change of the device's Bluetooth state. 
 
 __Arguments__
 - `state` - `String` - the new BLE state ('on'/'off').
@@ -487,7 +489,7 @@ NativeAppEventEmitter.addListener(
 ```
 
 ###  BleManagerDiscoverPeripheral
-The scanning find a new peripheral.
+Will be fired after starting a scan and on every device found. It also fires multiple times for the same device if not configured differently when starting the scan.
 
 __Arguments__
 - `id` - `String` - the id of the peripheral
@@ -497,9 +499,9 @@ __Examples__
 ```js
 NativeAppEventEmitter.addListener(
     'BleManagerDiscoverPeripheral',
-    (args) => {
-        // The id: args.id
-        // The name: args.name
+    (newPeripheral) => {
+        // The id: newPeripheral.id
+        // The name: newPeripheral.name
     }
 );
 ```
