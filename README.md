@@ -12,6 +12,17 @@ RN 0.30+
 - iOS 8+
 - Android (API 19+)
 
+## Tips and Tricks for working with Bluetooth
+You have to keep in mind that working with bluetooth is a pain in the a**. 
+Here are some tips for your implementation that my lead to problems.
+
+1. IOS and Android treat characteristic-ID's different according to their string case.
+Android stores the characteristic strings in lower case, and IOS in upper case. Keep this in mind
+when comparing characteristics.
+2. Android and IOS have different abilities when it comes to the number of Bluetooth messages that can be send 
+at the same time. To make sure that your app runs correctly on different devices try to only send one bluetooth
+message at a time.
+
 ##Install
 ```shell
 npm i --save react-native-ble-connect
@@ -237,6 +248,16 @@ BleManager.connect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
     console.log(error);
   });
 ```
+
+### Pairing / Bonding
+Pairing or also called Bonding of the mobile device with the bluetooth peripheral does not require an additional method. It works by accessing 
+a secured characteristic of the peripheral after calling the connect name.
+
+To sum it up. Perform following steps:
+1. Call the connect function with the  peripheralId
+2. Read a characteristic of the peripheral that is only accesible after bonding
+
+Android performs the bonding process by itself, whereas ios asks the user whether to pair with the device. 
 
 ### disconnect(peripheralId)
 Disconnect from a peripheral.
