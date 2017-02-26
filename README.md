@@ -254,6 +254,7 @@ Pairing or also called Bonding of the mobile device with the bluetooth periphera
 a secured characteristic of the peripheral after calling the connect name.
 
 To sum it up. Perform following steps:
+
 1. Call the connect function with the  peripheralId
 2. Read a characteristic of the peripheral that is only accesible after bonding
 
