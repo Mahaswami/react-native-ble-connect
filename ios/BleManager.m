@@ -191,6 +191,48 @@ RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callb
     callback(@[[NSNull null], [NSArray arrayWithArray:discoveredPeripherals]]);
 }
 
+RCT_EXPORT_METHOD(upgradeFirmware:(NSString *)urlstring deviceUUID:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID callback:(nonnull RCTResponseSenderBlock)callback)
+{
+    NSLog([@"####Upgrade Firmware " stringByAppendingString:urlstring] );
+    
+    NSURL  *webUrl = [NSURL URLWithString:urlstring];
+    NSData *urlData = [NSData dataWithContentsOfURL:webUrl];
+    if ( urlData )
+    {
+        NSArray   *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString  *documentsDirectory = [paths objectAtIndex:0];
+        
+        NSString  *filePath = [NSString stringWithFormat:@"%@/%@", documentsDirectory,@"firmwareupgrade.zip"];
+        [urlData writeToFile:filePath atomically:YES];
+    }
+    
+//    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyRead callback:callback];
+//    NSURL *url = [NSURL URLWithString:urlstring];
+    NSURL *url = [[NSBundle mainBundle] URLForResource:@"firmwareupgrade" withExtension:@"zip"];
+//    NSLog([url absoluteString]);
+    DFUFirmware *selectedFirmware = [[DFUFirmware alloc] initWithUrlToZipFile:url];
+    
+    CBPeripheral *peripheral = [self findPeripheralByUUID:deviceUUID];
+//    CBPeripheral *peripheral = [context peripheral];
+    
+    if (peripheral) {
+        
+        DFUServiceInitiator *initiator = [[DFUServiceInitiator alloc] initWithCentralManager: manager target:peripheral];
+        [initiator withFirmware:selectedFirmware];
+        
+        // Optional:
+        // initiator.forceDfu = YES/NO; // default NO
+        // initiator.packetReceiptNotificationParameter = N; // default is 12
+        initiator.logger = self; // - to get log info
+        initiator.delegate = self; // - to be informed about current state and errors
+        initiator.progressDelegate = self; // - to show progress bar
+        // initiator.peripheralSelector = ... // the default selector is used
+        
+        DFUServiceController *controller = [initiator start];
+    }
+    
+}
+
 RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"Get connected peripherals");
@@ -296,6 +338,7 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTRespon
         if([peripheralArray count] > 0){
             peripheral = [peripheralArray objectAtIndex:0];
             [peripherals addObject:peripheral];
+            self.peripher = peripheral;
             NSLog(@"Successfull retrieved peripheral with UUID : %@", peripheralUUID);
         }
     }
@@ -700,8 +743,29 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     
 }
 
+//(void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error {
+
+
+
 -(NSString *) keyForPeripheral: (CBPeripheral *)peripheral andCharacteristic:(CBCharacteristic *)characteristic {
     return [NSString stringWithFormat:@"%@|%@", [peripheral uuidAsString], [characteristic UUID]];
+}
+
+
+- (void)dfuStateDidChangeTo:(DFUState *)state {
+    NSLog(@"Changed state");
+}
+
+- (void)logWith:(LogLevel *)level message:(NSString*)message {
+    NSLog(message);
+}
+
+- (void)dfuError:(DFUError *)error message:(NSString*)message {
+    NSLog(message);
+}
+
+- (void)dfuProgressDidChangeFor:(NSInteger*)part outOf:(NSInteger*)totalParts to:(NSInteger*)progress currentSpeedBytesPerSecond:(double*)current_speed avgSpeedBytesPerSecond:(double*)avg_speed {
+    NSLog([@"Partnumber: " stringByAppendingString:[NSString stringWithFormat: @"%ld",  (long)part]]);
 }
 
 @end
