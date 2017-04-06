@@ -1,6 +1,6 @@
 {
   "name": "react-native-ble-connect",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Bluetooth Low Energy module for react native.",
   "main": "BleManager",
   "repository": {
@@ -11,9 +11,9 @@
     "url": "https://github.com/petrykowskim/react-native-ble-connect/issues"
   },
   "keywords": [
-  	"react-native",
-  	"react native",
-  	"android",
+    "react-native",
+    "react native",
+    "android",
     "ios",
     "ble",
     "bluetooth",
