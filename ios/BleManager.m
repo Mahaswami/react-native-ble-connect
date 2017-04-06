@@ -191,29 +191,33 @@ RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callb
     callback(@[[NSNull null], [NSArray arrayWithArray:discoveredPeripherals]]);
 }
 
-RCT_EXPORT_METHOD(upgradeFirmware:(NSString *)urlstring deviceUUID:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID callback:(nonnull RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(upgradeFirmware:(NSString *)urlstring deviceUUID:(NSString *)deviceUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
-    NSLog([@"####Upgrade Firmware " stringByAppendingString:urlstring] );
+    NSLog([@"####Upgrade to Firmware " stringByAppendingString:urlstring] );
     
     NSURL  *webUrl = [NSURL URLWithString:urlstring];
     NSData *urlData = [NSData dataWithContentsOfURL:webUrl];
+    NSString *filePath = @"";
     if ( urlData )
     {
         NSArray   *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString  *documentsDirectory = [paths objectAtIndex:0];
         
-        NSString  *filePath = [NSString stringWithFormat:@"%@/%@", documentsDirectory,@"firmwareupgrade.zip"];
+        filePath = [documentsDirectory stringByAppendingPathComponent:@"firmwareupgrade.zip"];
+        filePath = [filePath stringByStandardizingPath];
         [urlData writeToFile:filePath atomically:YES];
+    }else{
+        callback(@[@"Could not download file", [NSNull null]]);
+        return;
     }
     
-//    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyRead callback:callback];
-//    NSURL *url = [NSURL URLWithString:urlstring];
-    NSURL *url = [[NSBundle mainBundle] URLForResource:@"firmwareupgrade" withExtension:@"zip"];
-//    NSLog([url absoluteString]);
+    // Get File url from filepath
+    NSURL *url = [NSURL fileURLWithPath:filePath];
+    NSLog([url absoluteString]);
+    
     DFUFirmware *selectedFirmware = [[DFUFirmware alloc] initWithUrlToZipFile:url];
     
     CBPeripheral *peripheral = [self findPeripheralByUUID:deviceUUID];
-//    CBPeripheral *peripheral = [context peripheral];
     
     if (peripheral) {
         
@@ -229,8 +233,11 @@ RCT_EXPORT_METHOD(upgradeFirmware:(NSString *)urlstring deviceUUID:(NSString *)d
         // initiator.peripheralSelector = ... // the default selector is used
         
         DFUServiceController *controller = [initiator start];
+    }else{
+        callback(@[@"Peripheral not available", [NSNull null]]);
+        return;
     }
-    
+    callback(@[[NSNull null], filePath]);
 }
 
 RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback:(nonnull RCTResponseSenderBlock)callback)
@@ -754,10 +761,12 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 
 - (void)dfuStateDidChangeTo:(DFUState *)state {
     NSLog(@"Changed state");
+//    [self.bridge.eventDispatcher sendAppEventWithName:@"DFUUpdateState" body:@{@"state":state}];
 }
 
 - (void)logWith:(LogLevel *)level message:(NSString*)message {
     NSLog(message);
+    [self.bridge.eventDispatcher sendAppEventWithName:@"DFUUpdateState" body:@{@"state": message}];
 }
 
 - (void)dfuError:(DFUError *)error message:(NSString*)message {

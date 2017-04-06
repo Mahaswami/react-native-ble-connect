@@ -32,6 +32,18 @@ class BleManager  {
     });
   }
 
+  upgradeFirmware(url, peripheralId) {
+      return new Promise((fulfill, reject) => {
+        bleManager.upgradeFirmware(url, peripheralId, (error, data) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(data);
+          }
+        });
+      });
+    }
+
   write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
     if (maxByteSize == null) {
       maxByteSize = 20;
