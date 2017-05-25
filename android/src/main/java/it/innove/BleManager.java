@@ -506,32 +506,42 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	@ReactMethod
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
-		Log.d(LOG_TAG, "Get connected peripherals");
+		Log.d(LOG_TAG, "Get paired peripherals");
 		WritableArray map = Arguments.createArray();
-		BundleJSONConverter bjc = new BundleJSONConverter();
-		for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-			Map.Entry<String, Peripheral> entry = iterator.next();
-			Peripheral peripheral = entry.getValue();
-			Boolean accept = false;
+		BluetoothManager manager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+		BluetoothAdapter mBtAdapter = manager.getAdapter();
+		Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
 
-			if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
-				for (int i = 0; i < serviceUUIDs.size(); i++) {
-					accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
-				}
-			} else {
-				accept = true;
-			}
+		if(!pairedDevices.isEmpty()) {
+			for(BluetoothDevice device : pairedDevices) {
 
-			if (peripheral.isConnected() && accept) {
-				try {
-					Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
-					WritableMap jsonBundle = Arguments.fromBundle(bundle);
-					map.pushMap(jsonBundle);
-				} catch (JSONException ignored) {
-					callback.invoke("Peripheral json conversion error", null);
+				Peripheral peripheral = new Peripheral(device, reactContext);
+				Boolean accept = false;
+				if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
+					for (int i = 0; i < serviceUUIDs.size(); i++) {
+						accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
+					}
+				} else {
+					accept = true;
 				}
+				
+				if (accept) {
+	
+					if(!peripheral.isConnected()) {
+						Log.d(LOG_TAG, "!peripheral.isConnected()");
+					}
+					try {
+						Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
+						WritableMap jsonBundle = Arguments.fromBundle(bundle);
+						map.pushMap(jsonBundle);
+					} catch (JSONException ignored) {
+						callback.invoke("Peripheral json conversion error", null);
+					}
+				}
+				
 			}
 		}
+
 		callback.invoke(null, map);
 	}
 
