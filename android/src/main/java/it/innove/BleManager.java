@@ -23,6 +23,7 @@ import android.util.Log;
 import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.*;
 
@@ -508,30 +509,50 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
 		Log.d(LOG_TAG, "Get connected peripherals");
 		WritableArray map = Arguments.createArray();
-		BundleJSONConverter bjc = new BundleJSONConverter();
-		for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-			Map.Entry<String, Peripheral> entry = iterator.next();
-			Peripheral peripheral = entry.getValue();
-			Boolean accept = false;
 
-			if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
-				for (int i = 0; i < serviceUUIDs.size(); i++) {
-					accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
-				}
-			} else {
-				accept = true;
-			}
-
-			if (peripheral.isConnected() && accept) {
+		BluetoothAdapter adapter = getBluetoothAdapter();
+		for (Iterator<BluetoothDevice> iterator = adapter.getBondedDevices().iterator(); iterator.hasNext(); ) {
+			BluetoothDevice device = iterator.next();
+			if (device.getName().indexOf("LOCK") > -1) {
+				JSONObject json = new JSONObject();
 				try {
-					Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+					json.put("name", device.getName());
+					json.put("id", device.getAddress()); // mac address
+
+					BundleJSONConverter bjc = new BundleJSONConverter();
+					Bundle bundle = bjc.convertToBundle(json);
 					WritableMap jsonBundle = Arguments.fromBundle(bundle);
 					map.pushMap(jsonBundle);
-				} catch (JSONException ignored) {
+				} catch (Exception e) { // this shouldn't happen
 					callback.invoke("Peripheral json conversion error", null);
 				}
 			}
 		}
+
+		// BundleJSONConverter bjc = new BundleJSONConverter();
+		// for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+		// 	Map.Entry<String, Peripheral> entry = iterator.next();
+		// 	Peripheral peripheral = entry.getValue();
+		// 	Boolean accept = false;
+
+		// 	if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
+		// 		for (int i = 0; i < serviceUUIDs.size(); i++) {
+		// 			accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
+		// 		}
+		// 	} else {
+		// 		accept = true;
+		// 	}
+
+		// 	if (peripheral.isConnected() && accept) {
+		// 		try {
+		// 			Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+		// 			WritableMap jsonBundle = Arguments.fromBundle(bundle);
+		// 			map.pushMap(jsonBundle);
+		// 		} catch (JSONException ignored) {
+		// 			callback.invoke("Peripheral json conversion error", null);
+		// 		}
+		// 	}
+		// }
 		callback.invoke(null, map);
 	}
 
