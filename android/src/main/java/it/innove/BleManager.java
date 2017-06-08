@@ -17,6 +17,7 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
@@ -24,13 +25,23 @@ import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import org.json.JSONException;
 import org.json.JSONObject;
+import no.nordicsemi.android.dfu.DfuServiceInitiator;
+import no.nordicsemi.android.dfu.DfuProgressListener;
+import no.nordicsemi.android.dfu.DfuProgressListenerAdapter;
+import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 import java.util.*;
 
 import static android.app.Activity.RESULT_OK;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
-
 
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -42,6 +53,53 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	private Context context;
 	private ReactContext reactContext;
 	private Callback enableBluetoothCallback;
+
+	private final DfuProgressListener mDfuProgressListener = new DfuProgressListenerAdapter() {
+		@Override
+		public void onDeviceConnecting(final String deviceAddress) {
+			System.out.println("Device Connecting to " + deviceAddress);
+		}
+
+		@Override
+		public void onDfuProcessStarting(final String deviceAddress) {
+			System.out.println("Process Starting " + deviceAddress);
+		}
+
+		@Override
+		public void onEnablingDfuMode(final String deviceAddress) {
+			System.out.println("enabling dfu mode " + deviceAddress);
+		}
+
+		@Override
+		public void onFirmwareValidating(final String deviceAddress) {
+			System.out.println("Firmware Validating" + deviceAddress);
+		}
+
+		@Override
+		public void onDeviceDisconnecting(final String deviceAddress) {
+			System.out.println("Device Disconnecting" + deviceAddress);
+		}
+
+		@Override
+		public void onDfuCompleted(final String deviceAddress) {
+			System.out.println("Dfu completed" + deviceAddress);
+		}
+
+		@Override
+		public void onDfuAborted(final String deviceAddress) {
+			System.out.println("Dfu aborted" + deviceAddress);
+    }
+
+		@Override
+		public void onProgressChanged(final String deviceAddress, final int percent, final float speed, final float avgSpeed, final int currentPart, final int partsTotal) {
+			System.out.println("Dfu progress" + percent);
+		}
+
+		@Override
+		public void onError(final String deviceAddress, final int error, final int errorType, final String message) {
+			System.out.println("Dfu error" + message);
+		}
+	};
 
 	// key is the MAC Address
 	private Map<String, Peripheral> peripherals = new LinkedHashMap<>();
@@ -507,7 +565,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	@ReactMethod
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
-		Log.d(LOG_TAG, "Get connected peripherals");
+		Log.d(LOG_TAG, "Get paired peripherals");
 		WritableArray map = Arguments.createArray();
 
 		BluetoothAdapter adapter = getBluetoothAdapter();
@@ -526,6 +584,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				} catch (Exception e) { // this shouldn't happen
 					callback.invoke("Peripheral json conversion error", null);
 				}
+				
 			}
 		}
 
@@ -556,6 +615,80 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		callback.invoke(null, map);
 	}
 
+	@ReactMethod
+	public void upgradeFirmware(String firmwareUrl, String deviceUUID, Callback callback) {
+		DfuServiceListenerHelper.registerProgressListener(reactContext.getCurrentActivity(), mDfuProgressListener);
+		// Temporary filename
+		File file;
+		String mFilePath = "";
+		Uri mFileStreamUri = null;
+
+		try {
+			String fileName = Uri.parse(firmwareUrl).getLastPathSegment();
+			file = File.createTempFile(fileName, null, context.getCacheDir());
+			downloadFile(firmwareUrl, file);
+
+			mFilePath = file.getPath();
+			mFileStreamUri = Uri.fromFile(file);
+			System.out.println("Total space of file: " + file.getTotalSpace() + " / " + file.getName() + " / " + file.getPath());
+
+		} catch (IOException e) {
+        // Error while creating file
+				System.out.println(e);
+    }
+		System.out.println("Initializing starter with id " + deviceUUID);
+		final DfuServiceInitiator starter = new DfuServiceInitiator(deviceUUID)
+				// .setDeviceName(mSelectedDevice.getName())
+				.setDeviceName("Markus")
+				.setKeepBond(true)
+				.setForceDfu(true)
+				.setPacketsReceiptNotificationsEnabled(false)
+				.setPacketsReceiptNotificationsValue(DfuServiceInitiator.DEFAULT_PRN_VALUE)
+				.setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true); 
+
+		starter.setZip(mFileStreamUri, mFilePath);
+		System.out.println("Start!");
+		starter.start(context, DfuService.class);
+		System.out.println("Finished!");
+		callback.invoke(null, "Success");
+	}
+
+	private void downloadFile(String firmwareUrl, File file){
+		try {
+				URL url = new URL(firmwareUrl);
+
+				long startTime = System.currentTimeMillis();
+				Log.d("ImageManager", "download begining");
+				Log.d("ImageManager", "download url:" + url);
+				/* Open a connection to that URL. */
+				URLConnection ucon = url.openConnection();
+
+				/*
+					* Define InputStreams to read from the URLConnection.
+					*/
+				InputStream inputStream = ucon.getInputStream();
+				FileOutputStream outputStream = new FileOutputStream(file);
+
+				byte data[] = new byte[102400];
+				long total = 0;
+				int count;
+				while ((count = inputStream.read(data)) != -1) {
+						outputStream.write(data, 0, count);
+				}
+				// flushing output
+				outputStream.flush();
+				// closing streams
+				outputStream.close();
+				inputStream.close();
+
+				Log.d("ImageManager", "download ready in"
+								+ ((System.currentTimeMillis() - startTime) / 1000)
+								+ " sec");
+
+		} catch (IOException e) {
+						Log.d("ImageManager", "Error: " + e);
+		}
+	}
 
 	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
@@ -586,5 +719,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void onNewIntent(Intent intent) {
 
 	}
+
 
 }
