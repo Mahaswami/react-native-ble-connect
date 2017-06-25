@@ -138,12 +138,14 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "start");
 		if (getBluetoothAdapter() == null) {
 			Log.d(LOG_TAG, "No bluetooth support");
-			callback.invoke("No bluetooth support");
+			try { callback.invoke("No bluetooth support"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			return;
 		}
 		IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 		context.registerReceiver(mReceiver, filter);
-		callback.invoke();
+		try { callback.invoke(); }
+		catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 		Log.d(LOG_TAG, "BleManager initialized");
 	}
 
@@ -151,18 +153,21 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void enableBluetooth(Callback callback) {
 		if (getBluetoothAdapter() == null) {
 			Log.d(LOG_TAG, "No bluetooth support");
-			callback.invoke("No bluetooth support");
+			try { callback.invoke("No bluetooth support"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			return;
 		}
 		if (!getBluetoothAdapter().isEnabled()) {
 			enableBluetoothCallback = callback;
 			Intent intentEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			if (getCurrentActivity() == null)
-				callback.invoke("Current activity not available");
+				try { callback.invoke("Current activity not available"); }
+				catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			else
 				getCurrentActivity().startActivityForResult(intentEnable, ENABLE_REQUEST);
 		} else
-			callback.invoke();
+			try { callback.invoke(); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
@@ -170,7 +175,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "scan");
 		if (getBluetoothAdapter() == null) {
 			Log.d(LOG_TAG, "No bluetooth support");
-			callback.invoke("No bluetooth support");
+			try { callback.invoke("No bluetooth support"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			return;
 		}
 		if (!getBluetoothAdapter().isEnabled())
@@ -273,7 +279,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			};
 			thread.start();
 		}
-		callback.invoke();
+		try { callback.invoke(); }
+		catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	private void scan19(ReadableArray serviceUUIDs, final int scanSeconds, Callback callback) {
@@ -303,7 +310,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			};
 			thread.start();
 		}
-		callback.invoke();
+		try { callback.invoke(); }
+		catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 
@@ -318,12 +326,14 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		};
 
 		getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
-		callback.invoke();
+		try { callback.invoke(); }
+		catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	private void stopScan19(Callback callback) {
 		getBluetoothAdapter().stopLeScan(mLeScanCallback);
-		callback.invoke();
+		try { callback.invoke(); }
+		catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 
@@ -332,11 +342,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "Stop scan");
 		if (getBluetoothAdapter() == null) {
 			Log.d(LOG_TAG, "No bluetooth support");
-			callback.invoke("No bluetooth support");
+			try { callback.invoke("No bluetooth support"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			return;
 		}
 		if (!getBluetoothAdapter().isEnabled()) {
-			callback.invoke("Bluetooth not enabled");
+			try { callback.invoke("Bluetooth not enabled"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			return;
 		}
 		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
@@ -360,7 +372,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				peripheral = new Peripheral(device, reactContext);
 				peripherals.put(peripheralUUID, peripheral);
 			} else {
-				callback.invoke("Invalid peripheral uuid");
+				try { callback.invoke("Invalid peripheral uuid"); }
+				catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 				return;
 			}
 		}
@@ -374,9 +387,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Peripheral peripheral = peripherals.get(peripheralUUID);
 		if (peripheral != null){
 			peripheral.disconnect();
-			callback.invoke();
+			try { callback.invoke(); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 		} else
-			callback.invoke("Peripheral not found");
+			try { callback.invoke("Peripheral not found"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
@@ -387,7 +402,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		if (peripheral != null){
 			peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), callback);
 		} else
-			callback.invoke("Peripheral not found");
+			try { callback.invoke("Peripheral not found"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
@@ -398,7 +414,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		if (peripheral != null){
 			peripheral.removeNotify(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), callback);
 		} else
-			callback.invoke("Peripheral not found");
+			try { callback.invoke("Peripheral not found"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 
@@ -409,11 +426,17 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
-			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
-			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
-			peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), decoded, maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+			try {
+				byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
+				Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+				peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), decoded, maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+			} catch(Exception e) {
+				try { callback.invoke("Peripheral not found"); }
+				catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
+			}
 		} else
-			callback.invoke("Peripheral not found");
+			try { callback.invoke("Peripheral not found"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
@@ -426,7 +449,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
 			peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), decoded, maxByteSize, queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 		} else
-			callback.invoke("Peripheral not found");
+			try { callback.invoke("Peripheral not found"); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
@@ -434,9 +458,15 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "Read from: " + deviceUUID);
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
-			peripheral.read(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), callback);
+			try {
+				peripheral.read(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), callback);
+			} catch(Exception e) {
+				try { callback.invoke("Peripheral not found"); }
+				catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
+			}
 		} else
-			callback.invoke("Peripheral not found", null);
+			try { callback.invoke("Peripheral not found", null); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
@@ -446,7 +476,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		if (peripheral != null){
 			peripheral.readRSSI(callback);
 		} else
-			callback.invoke("Peripheral not found", null);
+			try { callback.invoke("Peripheral not found", null); }
+			catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	private BluetoothAdapter.LeScanCallback mLeScanCallback =
@@ -557,15 +588,17 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				WritableMap jsonBundle = Arguments.fromBundle(bundle);
 				map.pushMap(jsonBundle);
 			} catch (JSONException ignored) {
-				callback.invoke("Peripheral json conversion error", null);
+				try { callback.invoke("Peripheral json conversion error", null); }
+				catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			}
 		}
-		callback.invoke(null, map);
+		try { callback.invoke(null, map); }
+		catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
-		Log.d(LOG_TAG, "Get paired peripherals");
+		Log.d(LOG_TAG, "Get connected peripherals");
 		WritableArray map = Arguments.createArray();
 
 		BluetoothAdapter adapter = getBluetoothAdapter();
@@ -582,9 +615,9 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 					WritableMap jsonBundle = Arguments.fromBundle(bundle);
 					map.pushMap(jsonBundle);
 				} catch (Exception e) { // this shouldn't happen
-					callback.invoke("Peripheral json conversion error", null);
+					try { callback.invoke("Peripheral json conversion error", null); }
+					catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 				}
-				
 			}
 		}
 
@@ -608,11 +641,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		// 			WritableMap jsonBundle = Arguments.fromBundle(bundle);
 		// 			map.pushMap(jsonBundle);
 		// 		} catch (JSONException ignored) {
-		// 			callback.invoke("Peripheral json conversion error", null);
+		// try {  			callback.invoke("Peripheral json conversion error", null); }
+		// catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 		// 		}
 		// 	}
 		// }
-		callback.invoke(null, map);
+		try { callback.invoke(null, map); }
+		catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 	}
 
 	@ReactMethod
@@ -707,9 +742,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "onActivityResult");
 		if (requestCode == ENABLE_REQUEST && enableBluetoothCallback != null) {
 			if (resultCode == RESULT_OK) {
-				enableBluetoothCallback.invoke();
+				try { enableBluetoothCallback.invoke(); }
+				catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			} else {
-				enableBluetoothCallback.invoke("User refused to enable");
+				try { enableBluetoothCallback.invoke("User refused to enable"); }
+				catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
 			}
 			enableBluetoothCallback = null;
 		}
@@ -719,6 +756,5 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void onNewIntent(Intent intent) {
 
 	}
-
 
 }
