@@ -101,15 +101,15 @@ class BleManager  {
     });
   }
 
-  startNotification(peripheralId, serviceUUID, characteristicUUID) {
+  startNotification(userId, proxyUrl, peripheralId, serviceUUID, characteristicUUID) {
     return new Promise((fulfill, reject) => {
-      bleManager.startNotification(peripheralId, serviceUUID, characteristicUUID, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill();
-        }
-      });
+          bleManager.startNotification(userId, proxyUrl, peripheralId, serviceUUID, characteristicUUID, (error) => {
+            if (error) {
+              reject(error);
+            } else {
+              fulfill();
+            }
+          });
     });
   }
 
