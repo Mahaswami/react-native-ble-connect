@@ -109,7 +109,7 @@ class BleManager  {
             } else {
               fulfill();
             }
-          });
+          });  
     });
   }
 
