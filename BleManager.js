@@ -183,9 +183,9 @@ class BleManager  {
     });
   }
 
-  getConnectedPeripherals(serviceUUIDs) {
+  getConnectedPeripherals(peripheralId, serviceUUIDs) {
     return new Promise((fulfill, reject) => {
-      bleManager.getConnectedPeripherals(serviceUUIDs, (error, result) => {
+      bleManager.getConnectedPeripherals(peripheralId, serviceUUIDs, (error, result) => {
         if (error) {
           reject(error);
         } else {
@@ -216,7 +216,7 @@ class BleManager  {
   }
 
   isPeripheralConnected(peripheralId, serviceUUIDs) {
-    return this.getConnectedPeripherals(serviceUUIDs).then((result) => {
+    return this.getConnectedPeripherals(peripheralId, serviceUUIDs).then((result) => {
       if (result.find((p) => { return p.id === peripheralId; })) {
         return true;
       } else {

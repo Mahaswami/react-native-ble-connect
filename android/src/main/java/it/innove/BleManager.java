@@ -600,57 +600,68 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
    }
 
    @ReactMethod
-   public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
-      Log.d(LOG_TAG, "Get connected peripherals");
-      WritableArray map = Arguments.createArray();
+   public void getConnectedPeripherals(String peripheralId, ReadableArray serviceUUIDs, Callback callback) {
+       Log.d(LOG_TAG, "Get connected peripherals");
+       WritableArray map = Arguments.createArray();
+       BundleJSONConverter bjc = new BundleJSONConverter();
+       for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+          Map.Entry<String, Peripheral> entry = iterator.next();
+          Peripheral peripheral = entry.getValue();
+          Boolean accept = false;
 
-      BluetoothAdapter adapter = getBluetoothAdapter();
-      for (Iterator<BluetoothDevice> iterator = adapter.getBondedDevices().iterator(); iterator.hasNext(); ) {
-         BluetoothDevice device = iterator.next();
-         if (device.getName().indexOf("LOCK") > -1) {
-            JSONObject json = new JSONObject();
-            try {
-               json.put("name", device.getName());
-               json.put("id", device.getAddress()); // mac address
+          System.out.println("uuidddddddddddddddddddddddddddddddddd");
+          System.out.println(serviceUUIDs);
 
-               BundleJSONConverter bjc = new BundleJSONConverter();
-               Bundle bundle = bjc.convertToBundle(json);
-               WritableMap jsonBundle = Arguments.fromBundle(bundle);
-               map.pushMap(jsonBundle);
-            } catch (Exception e) { // this shouldn't happen
-               try { callback.invoke("Peripheral json conversion error", null); }
-               catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
-            }
-         }
-      }
+          if (serviceUUIDs.size() > 0) {
+             for (int i = 0; i < serviceUUIDs.size(); i++) {
+                accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
+                System.out.println("accepttttttttttttttttttttttttttttttttttttttttttttttttttt");
+                System.out.println(accept);
+                System.out.println(serviceUUIDs.getString(i));
+                System.out.println(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
+             }
+          } else {
+             accept = true;
+          }
 
-      // BundleJSONConverter bjc = new BundleJSONConverter();
-      // for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-      //     Map.Entry<String, Peripheral> entry = iterator.next();
-      //     Peripheral peripheral = entry.getValue();
-      //     Boolean accept = false;
+          if (peripheral.isConnected() && accept) {
+             try {
+                System.out.println("Bundleeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+                System.out.println(peripheral.isConnected());
+                Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+                WritableMap jsonBundle = Arguments.fromBundle(bundle);
+                map.pushMap(jsonBundle);
+                System.out.println(map);
+             } catch (JSONException ignored) {
+                callback.invoke("Peripheral json conversion error", null);
+             }
+          } else {
+              System.out.println("Peripheral is not connecteddddddddddddddddddddddddddddddd " + peripheralId);
 
-      //     if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
-      //        for (int i = 0; i < serviceUUIDs.size(); i++) {
-      //           accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
-      //        }
-      //     } else {
-      //        accept = true;
-      //     }
+              NotificationManager notificationManager=(NotificationManager)
+                               context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-      //     if (peripheral.isConnected() && accept) {
-      //        try {
-      //           Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
-      //           WritableMap jsonBundle = Arguments.fromBundle(bundle);
-      //           map.pushMap(jsonBundle);
-      //        } catch (JSONException ignored) {
-      // try {         callback.invoke("Peripheral json conversion error", null); }
-      // catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
-      //        }
-      //     }
-      // }
-      try { callback.invoke(null, map); }
-      catch(Exception invokeExceptionError) { Log.d(LOG_TAG, "Failed to invoke callback! :("); }
+             Notification notify=new Notification.Builder(context.getApplicationContext())
+                             .setContentTitle("Bluetooth Disconnected")
+                             .setContentText("The bluetooth button has been disconnected")
+                             .setContentTitle("Device Disconnected").setSmallIcon(R.drawable.ic_launcher).build();
+
+               //  Intent notificationIntent = new Intent(context, MainActivity.class);
+               //  notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+               //  PendingIntent intent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+               //  notify.setLatestEventInfo(context, "Bluetooth Disconnected", "The bluetooth button has been disconnected", intent);
+
+               notify.flags |= Notification.FLAG_AUTO_CANCEL;
+               notificationManager.notify(0, notify);
+
+
+
+
+
+
+          }
+       }
+       callback.invoke(null, map);
    }
 
    @ReactMethod
