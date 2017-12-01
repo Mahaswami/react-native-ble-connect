@@ -43,6 +43,18 @@ import static android.app.Activity.RESULT_OK;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
+import static android.app.Activity.RESULT_OK;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.*;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.os.Bundle;
+import android.view.View;
+
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
    private static final String LOG_TAG = "logs";
@@ -644,7 +656,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
              Notification notify=new Notification.Builder(context.getApplicationContext())
                              .setContentTitle("Bluetooth Disconnected")
                              .setContentText("The bluetooth button has been disconnected")
-                             .setContentTitle("Device Disconnected").setSmallIcon(R.drawable.ic_launcher).build();
+                             .setContentTitle("Device Disconnected").setSmallIcon(R.drawable.notification_icon).build();
 
                //  Intent notificationIntent = new Intent(context, MainActivity.class);
                //  notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
